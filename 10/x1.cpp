@@ -76,13 +76,13 @@ int main()
     std::vector<Instruction> instructions;
     for (std::string line; std::getline(std::cin, line); )
         instructions.push_back(Instruction::from_string(line));
-    std::cout << instructions.size()<<"\n";
+    //std::cout << instructions.size()<<"\n";
 
     int64_t sum = 0;
     int reg = 1;
     size_t pc = 0;
     int finish_cycle = instructions[pc].duration();
-    for (int cycle = 1; cycle <= 220; ++cycle)
+    for (int cycle = 1; cycle <= 240; ++cycle)
     {
         const auto& ins = instructions[pc];
 
@@ -91,8 +91,12 @@ int main()
         {
             const int64_t str = cycle*reg;
             sum += str;
-            std::cout << "NEWSUM " << cycle << " " << reg << " " << str << " " << sum << "\n";
+            //std::cout << "NEWSUM " << cycle << " " << reg << " " << str << " " << sum << "\n";
         }
+
+        const int xpos = (cycle - 1)%40;
+        if (xpos == 0) std::cout << '\n';
+        std::cout << (std::abs(reg - xpos) <= 1 ? '#' : ' ');
 
         // complete the executing instruction
         if (cycle == finish_cycle)
@@ -117,7 +121,7 @@ int main()
         }
     }
 
-    std::cout << sum << "\n";
+    std::cout << "\n";
 
     return 0;
 }
