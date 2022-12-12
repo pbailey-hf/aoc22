@@ -33,7 +33,7 @@ public:
         std::stringstream ss(line);
         while (ss)
         {
-            int item;
+            int64_t item;
             ss >> item;
             // burn a comma
             ss >> word;
@@ -78,20 +78,21 @@ public:
         is >> to_false_;
     }
 
-    int ninspect() const { return ninspect_; }
-    int id() const { return id_; }
-    const std::deque<int>& items() const { return items_; }
+    int64_t ninspect() const { return ninspect_; }
+    size_t id() const { return id_; }
+    const std::deque<int64_t>& items() const { return items_; }
+    int64_t div() const { return divisor_; }
 
-    std::pair<int, int> inspect_and_throw()
+    std::pair<int64_t, int> inspect_and_throw()
     {
         ++ninspect_;
-        int item = items_.front();
+        int64_t item = items_.front();
         items_.pop_front();
         const auto get = [item](const std::string& s)
         {
             if (s == "old")
                 return item;
-            return std::stoi(s);
+            return std::stol(s);
         };
 
         if (op_ == "+")
@@ -101,26 +102,26 @@ public:
         else
             std::runtime_error{"unknown op " + op_};
 
-        item /= 3;
+        //item /= 3;
 
         return {item, item % divisor_ == 0 ? to_true_ : to_false_};
     }
 
-    void recv(int item)
+    void recv(int64_t item)
     {
         items_.push_back(item);
     }
 
 private:
-    int id_;
-    std::deque<int> items_;
+    size_t id_;
+    std::deque<int64_t> items_;
     std::string arg1_;
     std::string op_;
     std::string arg2_;
-    int divisor_;
+    int64_t divisor_;
     int to_true_;
     int to_false_;
-    int ninspect_;
+    int64_t ninspect_;
 };
 
 void print(std::ostream& os, const std::vector<Monkey>& monkeys)
@@ -136,11 +137,11 @@ void print(std::ostream& os, const std::vector<Monkey>& monkeys)
 int main()
 {
     std::vector<Monkey> monkeys;
-    int i = 0;
+    int64_t alldiv = 1;
     while (std::cin) {
         try {
             monkeys.emplace_back(std::cin);
-            std::cout << "read monkey " << i++ << "\n";
+            alldiv *= monkeys.back().div();
         } catch (const std::runtime_error& e) {
             if (!std::cin.eof()) {
                 throw;
@@ -150,15 +151,15 @@ int main()
             throw std::runtime_error{"invalid monkey id"};
     }
 
-    std::cout << "==> start <==\n";
+    std::cout << "==> start " << alldiv << " <==\n";
     print(std::cout, monkeys);
     std::cout << "\n";
 
-    for (int i = 0; i < 20; ++i) {
+    for (int i = 0; i < 10000; ++i) {
         for (auto& m: monkeys) {
             while (m.items().size()) {
                 const auto next = m.inspect_and_throw();
-                monkeys[next.second].recv(next.first);
+                monkeys[next.second].recv(next.first % alldiv);
                 //std::cout << "monkey " << m.id() << " throws " << next.first << " to monkey " << next.second << "\n";
             }
         }
@@ -168,7 +169,7 @@ int main()
         std::cout << "\n";
     }
 
-    std::vector<int> nins(monkeys.size());
+    std::vector<int64_t> nins(monkeys.size());
     std::transform(monkeys.begin(), monkeys.end(), nins.begin(), [](const Monkey& m) {
             std::cout << "monkey " << m.id() << " inspected items " << m.ninspect() << " times.\n";
         return m.ninspect();
